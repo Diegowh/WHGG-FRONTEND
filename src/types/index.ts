@@ -25,6 +25,66 @@ export interface ChampionStatsData {
     totalGames: number;
 }
 
+export interface MatchData {
+
+    queueId: number;
+    gameEndTime: number;
+    gameDuration: number;
+
+    participantWon: boolean;
+    championId: number;
+    championLevel: number;
+
+    summonerSpellIds: number[];
+    runes: RuneSetData;
+
+    kills: number;
+    deaths: number;
+    assists: number;
+
+    kda: number;
+    totalMinionsKilled: number;
+    minionsPerMinuteAvg: number;
+    visionScore: number;
+
+    itemIds: number[];
+
+    teamComposition: TeamCompositionData
+}
+
+export interface RuneSetData {
+
+    primaryRuneId: number;
+    primaryTreeId: number;
+    secondaryTreeId: number;
+}
+
+export interface TeamCompositionData {
+
+    blueTeam: TeamData;
+    redTeam: TeamData;
+}
+
+export interface TeamData {
+
+    teamNumber: number;
+    participants: ParticipantData[];
+}
+
+export interface ParticipantData {
+
+    puuid: string;
+    gameName: string;
+    tagLine: string;
+    championId: number;
+    individualPosition: string;
+    championLevel: number;
+    kills: number;
+    deaths: number;
+    assists: number;
+    totalMinionsKilled: number;
+    visionScore: number;
+}
 
 export interface ProfileData {
     puuid: string;
