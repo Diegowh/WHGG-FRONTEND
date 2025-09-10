@@ -32,7 +32,7 @@ export const ChampionStatsComponent: React.FC<{
             <h2 className="text-xl font-bold text-white mb-4">Champion Statistics</h2>
             {data && data.length > 0 ? (
                 <div className="space-y-3">
-                    {data.slice(0, 10).map((champion, index) => (
+                    {data.slice(0, 5).map((champion, index) => (
                         <div key={index} className="bg-gray-700 p-4 rounded">
                             <div className="flex justify-between items-center">
                                 <div>
@@ -42,7 +42,7 @@ export const ChampionStatsComponent: React.FC<{
                                     <p className="text-gray-300">KDA: {champion.kda?.toFixed(2) || 'N/A'}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-white">{champion.winrate ? `${Math.round(champion.winrate)}%` : 'N/A'}</p>
+                                    <p className="text-white">{champion.winrate ? `${Math.round(champion.winrate * 100)}%` : 'N/A'}</p>
                                     <p className="text-sm text-gray-400">{champion.totalGames || 0} games</p>
                                 </div>
                             </div>
