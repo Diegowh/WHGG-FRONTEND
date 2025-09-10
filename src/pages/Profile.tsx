@@ -1,80 +1,202 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import type {ProfileData} from "../types";
+import type {AccountData, ChampionStatsData, MatchData, LeagueEntryData} from "../types";
+import {AccountDataComponent} from "../components/AccountDataComponent.tsx";
+import {LeagueEntriesDataComponent} from "../components/LeagueEntriesDataComponent.tsx";
+import {ChampionStatsComponent} from "../components/ChampionStatsComponent.tsx";
+import {MatchesDataComponent} from "../components/MatchesDataComponent.tsx";
+import { fetchLeagueEntries, fetchChampionStats, fetchMatches } from "../services/api";
+
+interface LoadingStates {
+    account: boolean;
+    leagueEntries: boolean;
+    championStats: boolean;
+    matches: boolean;
+}
+
+interface ErrorStates {
+    account: string | null;
+    leagueEntries: string | null;
+    championStats: string | null;
+    matches: string| null;
+
+}
+
+interface ProfileData {
+    account: AccountData | null;
+    leagueEntries: LeagueEntryData[] | null;
+    championStats: ChampionStatsData[] | null;
+    matches: MatchData[] | null;
+}
+
 
 const Profile: React.FC = () => {
 
 
     const location = useLocation();
     const navigate = useNavigate();
-    const profileData: ProfileData = location.state?.profileData;
 
-    if (!profileData) {
+    const initialAccountData = location.state?.profileData;
+    const searchParams = location.state?.searchParams;
 
+    const [data, setData] = useState<ProfileData>({
+        account: initialAccountData || null,
+        leagueEntries: null,
+        championStats: null,
+        matches: null
+    })
+
+    const [loading, setLoading] = useState<LoadingStates>({
+        account: false,
+        leagueEntries: true,
+        championStats: true,
+        matches: true
+    });
+
+    const [errors, setErrors] = useState<ErrorStates>({
+        account: null,
+        leagueEntries: null,
+        championStats: null,
+        matches: null
+    });
+
+    useEffect(() => {
+        if (!initialAccountData || !searchParams) {
+            return;
+        }
+        
+        //carga los datos asincronamente
+        loadLeagueEntries();
+        loadChampionStats();
+        loadMatches();
+    }, [initialAccountData, searchParams]);
+
+    // redirecciona si no hay AccountData
+    if (!initialAccountData) {
         return (
-            <div className="p-8 text-center">
-
-                <h2 className="text-2xl font-bold mb-4">No profile data found</h2>
-                <button
-                    onClick={() => navigate("/")}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-white mb-4">No profile data found</h2>
+                    <button
+                        onClick={() => navigate("/")}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                     >
-                    Back
-                </button>
+                        Back
+                    </button>
+                </div>
             </div>
         );
     }
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleString();
+    const loadLeagueEntries = async () => {
+        try {
+            setLoading(prevState => ({ ...prevState, leagueEntries: true}));
+            setErrors(prevState => ({ ...prevState, leagueEntries: null}));
+            
+            const leagueData = await fetchLeagueEntries(
+                searchParams.server,
+                searchParams.gameName,
+                searchParams.tagLine
+            );
+            
+            setData(prevState => ({ ...prevState, leagueEntries: leagueData }));
+
+        } catch (error) {
+            setErrors(prevState => ({ ...prevState, leagueEntries: "Failed to load league entries"}));
+            console.error(error);
+        } finally {
+            setLoading(prevState => ({ ...prevState, leagueEntries: false}));
+        }
     };
 
+    const loadChampionStats = async () => {
+        try {
+            setLoading(prev => ({ ...prev, championStats: true }));
+            setErrors(prev => ({ ...prev, championStats: null }));
+            
+            const champData = await fetchChampionStats(
+                searchParams.gameName,
+                searchParams.tagLine
+            );
+            
+            setData(prev => ({ ...prev, championStats: champData }));
+
+        } catch (error) {
+            setErrors(prev => ({ ...prev, championStats: 'Failed to load champion stats' }));
+            console.error(error);
+        } finally {
+            setLoading(prev => ({ ...prev, championStats: false }));
+        }
+    };
+
+    const loadMatches = async () => {
+        try {
+            setLoading(prev => ({ ...prev, matches: true }));
+            setErrors(prev => ({ ...prev, matches: null }));
+            
+            const matchData = await fetchMatches(
+                searchParams.server,
+                searchParams.gameName,
+                searchParams.tagLine
+            );
+            
+            setData(prev => ({ ...prev, matches: matchData }));
+
+        } catch (error) {
+            setErrors(prev => ({ ...prev, matches: 'Failed to load matches' }));
+            console.error(error);
+        } finally {
+            setLoading(prev => ({ ...prev, matches: false }));
+        }
+    };
+
+
     return (
-        <div className="p-8 max-w-4xl mx-auto">
-            <button
-                onClick={() => navigate('/')}
-                className="mb-6 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-                ← Back to Search
-            </button>
-
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                <h1 className="text-3xl font-bold text-gray-800 mb-6">
-                    {profileData.gameName}#{profileData.tagLine}
-                </h1>
-
-                <div className="space-y-4">
-                    <div className="flex items-center">
-                        <span className="font-semibold text-gray-700 w-40">Summoner Level:</span>
-                        <span className="text-lg font-bold text-blue-600">{profileData.summonerLevel}</span>
-                    </div>
-
-                    <div className="flex items-center">
-                        <span className="font-semibold text-gray-700 w-40">Profile Icon ID:</span>
-                        <span className="text-gray-900">{profileData.profileIconId}</span>
-                    </div>
-
-                    <div className="flex items-center">
-                        <span className="font-semibold text-gray-700 w-40">Last Updated:</span>
-                        <span className="text-gray-900">{formatDate(profileData.lastUpdated)}</span>
-                    </div>
-
-                    <div>
-                        <span className="font-semibold text-gray-700 block mb-2">PUUID:</span>
-                        <code className="bg-gray-200 px-2 py-1 rounded text-xs break-all block">
-                            {profileData.puuid}
-                        </code>
-                    </div>
+        <div className="min-h-screen bg-gray-900">
+            <div className="max-w-7xl mx-auto px-4 py-8">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        ← Back to Search
+                    </button>
                 </div>
 
-                <details className="mt-6">
-                    <summary className="cursor-pointer font-bold text-gray-700 hover:text-gray-900">
-                        Raw JSON Data
-                    </summary>
-                    <pre className="bg-gray-200 p-4 rounded mt-2 overflow-auto text-xs">
-            {JSON.stringify(profileData, null, 2)}
-          </pre>
-                </details>
+                {/* Main Grid Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Account Info - Always visible */}
+                    <div className="lg:col-span-3">
+                        <AccountDataComponent data={data.account} />
+                    </div>
+
+                    {/* Left Column */}
+                    <div className="lg:col-span-1 space-y-6">
+                        {/* Ranked Section */}
+                        <LeagueEntriesDataComponent
+                            data={data.leagueEntries}
+                            loading={loading.leagueEntries}
+                            error={errors.leagueEntries}
+                        />
+                        
+                        {/* Champion Stats Section */}
+                        <ChampionStatsComponent
+                            data={data.championStats}
+                            loading={loading.championStats}
+                            error={errors.championStats}
+                        />
+                    </div>
+
+                    {/* Matches Section */}
+                    <div className="lg:col-span-2">
+                        <MatchesDataComponent
+                            data={data.matches}
+                            loading={loading.matches}
+                            error={errors.matches}
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     );

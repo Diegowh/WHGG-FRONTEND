@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {type SearchFormData, SERVERS} from "../types";
+import {type SearchFormData} from "../types";
+import {SERVERS} from "../constants/servers";
 import { searchAccount } from '../services/api';
 
 
@@ -76,7 +77,14 @@ const Home: React.FC = () => {
             );
 
             navigate('/profile', {
-                state: { profileData: data }
+                state: { 
+                    profileData: data,
+                    searchParams: {
+                        server: formData.server,
+                        gameName: formData.gameName.trim(),
+                        tagLine: formData.tagLine.trim()
+                    }
+                }
             });
         } catch (err) {
             console.error('Search failed: ', err);
@@ -126,10 +134,10 @@ const Home: React.FC = () => {
                 <h1 className="text-8xl font-bold text-white mb-2">WHGG</h1>
             </div>
 
-            {/* Search Form */}
+            {/* Formulario */}
             <form onSubmit={handleSubmit} className="w-full max-w-2xl">
                 <div className="flex items-center bg-gray-800 rounded-lg p-2 shadow-lg">
-                    {/* Game Name Input */}
+                    {/* Game Name */}
                     <input
                         type="text"
                         id="gameName"
@@ -147,10 +155,9 @@ const Home: React.FC = () => {
                         maxLength={16}
                     />
 
-                    {/* Separator */}
                     <div className="w-px h-8 bg-gray-600"></div>
 
-                    {/* Tag Line Input */}
+                    {/* Tag Line */}
                     <input
                         type="text"
                         id="tagLine"
@@ -167,10 +174,9 @@ const Home: React.FC = () => {
                         maxLength={5}
                     />
 
-                    {/* Separator */}
                     <div className="w-px h-8 bg-gray-600"></div>
 
-                    {/* Server Select */}
+                    {/* Server Combobox */}
                     <select
                         id="server"
                         name="server"
@@ -187,7 +193,7 @@ const Home: React.FC = () => {
                         ))}
                     </select>
 
-                    {/* Search Button */}
+                    {/* Botón buscar */}
                     <button
                         type="submit"
                         disabled={loading || !formData.gameName || !formData.tagLine}
@@ -209,7 +215,6 @@ const Home: React.FC = () => {
                     </button>
                 </div>
 
-                {/* Error Message */}
                 {error && (
                     <div className="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-lg">
                         <p className="text-red-400 text-sm text-center">{error}</p>
