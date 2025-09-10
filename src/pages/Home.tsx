@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {type SearchFormData} from "../types";
 import {SERVERS} from "../constants/servers";
 import { searchAccount } from '../services/api';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useRecentSearches, type RecentSearch } from '../hooks/useRecentSearches';
 
 
 const Home: React.FC = () => {
@@ -10,11 +12,15 @@ const Home: React.FC = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [formData, setFormData] = useState<SearchFormData>({
+    const [showRecentSearches, setShowRecentSearches] = useState(false);
+    
+    const [formData, setFormData] = useLocalStorage<SearchFormData>('whgg-form-data', {
         gameName: '',
         tagLine: '',
         server: 'euw1'
     });
+    
+    const { recentSearches, addRecentSearch, removeRecentSearch, clearRecentSearches } = useRecentSearches();
 
 
     const handleInputChange = (
@@ -30,6 +36,9 @@ const Home: React.FC = () => {
 
         // para limpiar el error al escribir
         if (error) setError(null);
+        
+        // Hide recent searches when user starts typing
+        if (showRecentSearches) setShowRecentSearches(false);
     };
 
     const validateForm = (): boolean => {
@@ -70,20 +79,25 @@ const Home: React.FC = () => {
         setError(null);
 
         try {
+            const searchData = {
+                server: formData.server,
+                gameName: formData.gameName.trim(),
+                tagLine: formData.tagLine.trim()
+            };
+            
             const data = await searchAccount(
-                formData.server,
-                formData.gameName.trim(),
-                formData.tagLine.trim(),
+                searchData.server,
+                searchData.gameName,
+                searchData.tagLine,
             );
+            
+            // Add to recent searches on successful search
+            addRecentSearch(searchData);
 
             navigate('/profile', {
                 state: { 
                     profileData: data,
-                    searchParams: {
-                        server: formData.server,
-                        gameName: formData.gameName.trim(),
-                        tagLine: formData.tagLine.trim()
-                    }
+                    searchParams: searchData
                 }
             });
         } catch (err) {
@@ -126,6 +140,26 @@ const Home: React.FC = () => {
             }
         }
     };
+    
+    const handleRecentSearchClick = (search: RecentSearch) => {
+        setFormData({
+            gameName: search.gameName || '',
+            tagLine: search.tagLine || '',
+            server: search.server || 'euw1'
+        });
+        setShowRecentSearches(false);
+        if (error) setError(null);
+    };
+    
+    const handleInputFocus = () => {
+        if (recentSearches.length > 0) {
+            setShowRecentSearches(true);
+        }
+    };
+    
+    const getServerLabel = (serverValue: string) => {
+        return SERVERS.find(s => s.value === serverValue)?.label || serverValue.toUpperCase();
+    };
 
     return (
         <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center px-4">
@@ -150,6 +184,7 @@ const Home: React.FC = () => {
                         value={formData.gameName}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
+                        onFocus={handleInputFocus}
                         className="flex-1 bg-transparent text-white px-4 py-3 focus:outline-none placeholder-gray-500"
                         disabled={loading}
                         maxLength={16}
@@ -169,6 +204,7 @@ const Home: React.FC = () => {
                         value={formData.tagLine}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
+                        onFocus={handleInputFocus}
                         className="w-40 bg-transparent text-white px-4 py-3 focus:outline-none placeholder-gray-500"
                         disabled={loading}
                         maxLength={5}
@@ -218,6 +254,49 @@ const Home: React.FC = () => {
                 {error && (
                     <div className="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-lg">
                         <p className="text-red-400 text-sm text-center">{error}</p>
+                    </div>
+                )}
+                
+                {/* Recent Searches */}
+                {showRecentSearches && recentSearches.length > 0 && (
+                    <div className="mt-2 bg-gray-800 rounded-lg shadow-lg border border-gray-700 max-h-60 overflow-y-auto">
+                        <div className="flex items-center justify-between p-3 border-b border-gray-700">
+                            <h3 className="text-sm font-medium text-gray-300">Recent Searches</h3>
+                            <button
+                                onClick={clearRecentSearches}
+                                className="text-xs text-gray-400 hover:text-red-400 transition-colors"
+                            >
+                                Clear All
+                            </button>
+                        </div>
+                        <div className="py-1">
+                            {recentSearches.map((search) => (
+                                <div key={search.id} className="group flex items-center justify-between px-3 py-2 hover:bg-gray-700 cursor-pointer">
+                                    <div 
+                                        onClick={() => handleRecentSearchClick(search)}
+                                        className="flex-1 flex items-center space-x-2 min-w-0"
+                                    >
+                                        <span className="text-sm text-white truncate">
+                                            {search.gameName}#{search.tagLine}
+                                        </span>
+                                        <span className="text-xs text-gray-400 px-2 py-1 bg-gray-600 rounded">
+                                            {getServerLabel(search.server || '')}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            removeRecentSearch(search.id);
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-400 transition-all p-1"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
             </form>
