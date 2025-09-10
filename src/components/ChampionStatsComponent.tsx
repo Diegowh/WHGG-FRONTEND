@@ -37,7 +37,7 @@ export const ChampionStatsComponent: React.FC<{
                             <div className="flex justify-between items-center">
                                 <div>
                                     <h3 className="text-white font-semibold">
-                                        {champion.championName || `Champion ${champion.championId}`}
+                                        {champion.championName || `Champion ID: ${champion.championId}`}
                                     </h3>
                                     <p className="text-gray-300">KDA: {champion.kda?.toFixed(2) || 'N/A'}</p>
                                 </div>

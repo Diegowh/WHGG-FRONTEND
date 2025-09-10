@@ -94,7 +94,7 @@ const Home: React.FC = () => {
             // Add to recent searches on successful search
             addRecentSearch(searchData);
 
-            navigate('/profile', {
+            navigate(`/profile/${searchData.server}/${searchData.gameName}-${searchData.tagLine}/overview`, {
                 state: { 
                     profileData: data,
                     searchParams: searchData

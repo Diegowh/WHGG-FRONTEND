@@ -1,19 +1,29 @@
 import type {MatchData} from "../types";
 import React from "react";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 export const MatchesDataComponent: React.FC<{
     data: MatchData[] | null;
     loading: boolean;
     error: string | null;
-}> = ({ data, loading, error }) => {
-    if (loading) {
+    minMatches?: number;
+}> = ({ data, loading, error, minMatches = 20 }) => {
+    // Show loading if still loading OR if we have data but less than minimum matches
+    const isStillLoading = loading || (data && data.length > 0 && data.length < minMatches);
+    
+    if (isStillLoading) {
+        const currentCount = data?.length || 0;
+        
         return (
-            <div className="bg-gray-800 rounded-lg p-6 animate-pulse">
-                <div className="h-4 bg-gray-700 rounded w-1/3 mb-4"></div>
-                <div className="space-y-2">
-                    {[...Array(5)].map((_, i) => (
-                        <div key={i} className="h-20 bg-gray-700 rounded"></div>
-                    ))}
+            <div className="bg-gray-800 rounded-lg p-6">
+                <div className="flex items-center justify-center space-x-3 py-8">
+                    <LoadingSpinner size="lg" />
+                    <div className="text-gray-300">
+                        {currentCount > 0 
+                            ? `Loading matches... ${currentCount}/${minMatches}` 
+                            : 'Loading matches...'
+                        }
+                    </div>
                 </div>
             </div>
         );
@@ -40,11 +50,10 @@ export const MatchesDataComponent: React.FC<{
                             {/* Match content */}
                             <div className="p-3 flex-1">
                                 <p className="text-white font-medium">
-                                    Champion {match.championId}
+                                    Champion ID: {match.championId}
                                 </p>
                                 <p className="text-sm text-gray-300">
-                                    {match.participantWon ? 'Victory' : 'Defeat'} - 
-                                    K/D/A: {match.kills}/{match.deaths}/{match.assists}
+                                    KDA: {match.kills}/{match.deaths}/{match.assists}
                                 </p>
                             </div>
                         </div>

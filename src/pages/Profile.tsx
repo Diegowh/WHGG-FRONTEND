@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import type {AccountData, ChampionStatsData, MatchData, LeagueEntryData} from "../types";
 import {AccountDataComponent} from "../components/AccountDataComponent.tsx";
 import {LeagueEntriesDataComponent} from "../components/LeagueEntriesDataComponent.tsx";
 import {ChampionStatsComponent} from "../components/ChampionStatsComponent.tsx";
 import {MatchesDataComponent} from "../components/MatchesDataComponent.tsx";
-import { fetchLeagueEntries, fetchChampionStats, fetchMatches } from "../services/api";
+import { searchAccount, fetchLeagueEntries, fetchChampionStats, fetchMatches } from "../services/api";
 
 interface LoadingStates {
     account: boolean;
@@ -32,12 +32,33 @@ interface ProfileData {
 
 const Profile: React.FC = () => {
 
-
     const location = useLocation();
     const navigate = useNavigate();
+    const params = useParams<{
+        server: string;
+        riotId: string;
+        view: string;
+    }>();
+
+    // Extract searchParams from URL params or state
+    const searchParams = React.useMemo(() => {
+        if (params.server && params.riotId) {
+            // Parse riotId format: gameName-tagLine
+            const riotIdParts = params.riotId.split('-');
+            if (riotIdParts.length >= 2) {
+                const tagLine = riotIdParts.pop()!;
+                const gameName = riotIdParts.join('-');
+                return {
+                    server: params.server,
+                    gameName,
+                    tagLine
+                };
+            }
+        }
+        return location.state?.searchParams;
+    }, [params, location.state]);
 
     const initialAccountData = location.state?.profileData;
-    const searchParams = location.state?.searchParams;
 
     const [data, setData] = useState<ProfileData>({
         account: initialAccountData || null,
@@ -47,7 +68,7 @@ const Profile: React.FC = () => {
     })
 
     const [loading, setLoading] = useState<LoadingStates>({
-        account: false,
+        account: !initialAccountData, // True if we need to load account data
         leagueEntries: true,
         championStats: true,
         matches: true
@@ -61,32 +82,63 @@ const Profile: React.FC = () => {
     });
 
     useEffect(() => {
-        if (!initialAccountData || !searchParams) {
+        if (!searchParams) {
             return;
         }
         
-        //carga los datos asincronamente
-        loadLeagueEntries();
-        loadChampionStats();
-        loadMatches();
+        // If we don't have account data, load it first
+        if (!initialAccountData) {
+            loadAccountData();
+        } else {
+            // carga los datos asincronamente
+            loadLeagueEntries();
+            loadChampionStats();
+            loadMatches();
+        }
     }, []);
 
-    // redirecciona si no hay AccountData
-    if (!initialAccountData) {
+    // redirecciona si no hay parámetros válidos
+    if (!searchParams) {
         return (
             <div className="min-h-screen bg-gray-900 flex items-center justify-center">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-white mb-4">No profile data found</h2>
+                    <h2 className="text-2xl font-bold text-white mb-4">Invalid profile URL</h2>
                     <button
                         onClick={() => navigate("/")}
                         className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                     >
-                        Back
+                        Back to Search
                     </button>
                 </div>
             </div>
         );
     }
+    
+    const loadAccountData = async () => {
+        try {
+            setLoading(prev => ({ ...prev, account: true }));
+            setErrors(prev => ({ ...prev, account: null }));
+            
+            const accountData = await searchAccount(
+                searchParams.server,
+                searchParams.gameName,
+                searchParams.tagLine
+            );
+            
+            setData(prev => ({ ...prev, account: accountData }));
+            
+            // Once account data is loaded, load other data
+            loadLeagueEntries();
+            loadChampionStats();
+            loadMatches();
+            
+        } catch (error) {
+            setErrors(prev => ({ ...prev, account: 'Failed to load account data' }));
+            console.error(error);
+        } finally {
+            setLoading(prev => ({ ...prev, account: false }));
+        }
+    };
 
     const loadLeagueEntries = async () => {
         try {
@@ -168,7 +220,11 @@ const Profile: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Account Info - Always visible */}
                     <div className="lg:col-span-3">
-                        <AccountDataComponent data={data.account} />
+                        <AccountDataComponent 
+                            data={data.account} 
+                            loading={loading.account}
+                            error={errors.account}
+                        />
                     </div>
 
                     {/* Left Column */}
