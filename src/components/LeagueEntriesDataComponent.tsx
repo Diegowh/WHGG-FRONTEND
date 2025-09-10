@@ -23,31 +23,52 @@ export const  LeagueEntriesDataComponent: React.FC<{
         );
     }
 
+
+    const soloQueueData = data?.find(entry => 
+        entry.queueType === 'RANKED_SOLO_5x5' || 
+        entry.queueType?.includes('SOLO') ||
+        entry.queueType?.toLowerCase().includes('solo')
+    );
+    const flexQueueData = data?.find(entry => 
+        entry.queueType === 'RANKED_FLEX_SR' || 
+        entry.queueType?.includes('FLEX') ||
+        entry.queueType?.toLowerCase().includes('flex')
+    );
+    
+    const renderQueueCard = (queueData: LeagueEntryData | undefined, queueName: string) => (
+        <div className="bg-gray-700 p-4 rounded">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h3 className="text-white font-semibold">{queueName}</h3>
+                    {queueData ? (
+                        <p className="text-gray-300">{queueData.tier} {queueData.rank}</p>
+                    ) : (
+                        <p className="text-gray-400">Unranked</p>
+                    )}
+                </div>
+                <div className="text-right">
+                    {queueData ? (
+                        <>
+                            <p className="text-white">{queueData.leaguePoints} LP</p>
+                            <p className="text-sm text-gray-400">
+                                {queueData.wins}W / {queueData.losses}L ({Math.round(queueData.winRatio || 0)}%)
+                            </p>
+                        </>
+                    ) : (
+                        <p className="text-gray-400">0 LP</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <div className="bg-gray-800 rounded-lg p-6">
             <h2 className="text-xl font-bold text-white mb-4">Ranked Stats</h2>
-            {data && data.length > 0 ? (
-                <div className="space-y-3">
-                    {data.map((entry, index) => (
-                        <div key={index} className="bg-gray-700 p-4 rounded">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h3 className="text-white font-semibold">{entry.queueType}</h3>
-                                    <p className="text-gray-300">{entry.tier} {entry.rank}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-white">{entry.leaguePoints} LP</p>
-                                    <p className="text-sm text-gray-400">
-                                        {entry.wins}W / {entry.losses}L ({Math.round(entry.winRatio)}%)
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <p className="text-gray-400">No ranked data yet</p>
-            )}
+            <div className="space-y-3">
+                {renderQueueCard(soloQueueData, "Ranked Solo Queue")}
+                {renderQueueCard(flexQueueData, "Ranked Flex Queue")}
+            </div>
         </div>
     );
 }
