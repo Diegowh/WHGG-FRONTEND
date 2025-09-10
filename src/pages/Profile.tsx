@@ -69,7 +69,7 @@ const Profile: React.FC = () => {
         loadLeagueEntries();
         loadChampionStats();
         loadMatches();
-    }, [initialAccountData, searchParams]);
+    }, []);
 
     // redirecciona si no hay AccountData
     if (!initialAccountData) {
