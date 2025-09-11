@@ -157,6 +157,13 @@ const Home: React.FC = () => {
         }
     };
     
+    const handleInputBlur = () => {
+        // Use a small delay to allow clicking on recent search items
+        setTimeout(() => {
+            setShowRecentSearches(false);
+        }, 150);
+    };
+    
     const getServerLabel = (serverValue: string) => {
         return SERVERS.find(s => s.value === serverValue)?.label || serverValue.toUpperCase();
     };
@@ -169,7 +176,7 @@ const Home: React.FC = () => {
             </div>
 
             {/* Formulario */}
-            <form onSubmit={handleSubmit} className="w-full max-w-2xl">
+            <form onSubmit={handleSubmit} className="w-full max-w-2xl relative">
                 <div className="flex items-center bg-gray-800 rounded-lg p-2 shadow-lg">
                     {/* Game Name */}
                     <input
@@ -185,6 +192,7 @@ const Home: React.FC = () => {
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         onFocus={handleInputFocus}
+                        onBlur={handleInputBlur}
                         className="flex-1 bg-transparent text-white px-4 py-3 focus:outline-none placeholder-gray-500"
                         disabled={loading}
                         maxLength={16}
@@ -205,6 +213,7 @@ const Home: React.FC = () => {
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         onFocus={handleInputFocus}
+                        onBlur={handleInputBlur}
                         className="w-40 bg-transparent text-white px-4 py-3 focus:outline-none placeholder-gray-500"
                         disabled={loading}
                         maxLength={5}
@@ -259,7 +268,7 @@ const Home: React.FC = () => {
                 
                 {/* Recent Searches */}
                 {showRecentSearches && recentSearches.length > 0 && (
-                    <div className="mt-2 bg-gray-800 rounded-lg shadow-lg border border-gray-700 max-h-60 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 rounded-lg shadow-lg border border-gray-700 max-h-60 overflow-y-auto z-10">
                         <div className="flex items-center justify-between p-3 border-b border-gray-700">
                             <h3 className="text-sm font-medium text-gray-300">Recent Searches</h3>
                             <button

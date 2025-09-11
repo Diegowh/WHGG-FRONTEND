@@ -2,7 +2,7 @@ import type {MatchData} from "../types";
 import React from "react";
 import { LoadingSpinner } from "./LoadingSpinner";
 
-export const MatchesDataComponent: React.FC<{
+export const MatchHistory: React.FC<{
     data: MatchData[] | null;
     loading: boolean;
     error: string | null;

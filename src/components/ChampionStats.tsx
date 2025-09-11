@@ -1,7 +1,7 @@
 import React from "react";
 import type {ChampionStatsData} from "../types";
 
-export const ChampionStatsComponent: React.FC<{
+export const ChampionStats: React.FC<{
     data: ChampionStatsData[] | null;
     loading: boolean;
     error: string | null;

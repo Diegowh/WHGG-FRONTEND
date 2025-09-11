@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import type {AccountData, ChampionStatsData, MatchData, LeagueEntryData} from "../types";
-import {AccountDataComponent} from "../components/AccountDataComponent.tsx";
-import {LeagueEntriesDataComponent} from "../components/LeagueEntriesDataComponent.tsx";
-import {ChampionStatsComponent} from "../components/ChampionStatsComponent.tsx";
-import {MatchesDataComponent} from "../components/MatchesDataComponent.tsx";
+import {PlayerProfile} from "../components/PlayerProfile.tsx";
+import {RankedStats} from "../components/RankedStats.tsx";
+import {ChampionStats} from "../components/ChampionStats.tsx";
+import {MatchHistory} from "../components/MatchHistory.tsx";
 import { searchAccount, fetchLeagueEntries, fetchChampionStats, fetchMatches } from "../services/api";
 
 interface LoadingStates {
@@ -220,7 +220,7 @@ const Profile: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Account Info - Always visible */}
                     <div className="lg:col-span-3">
-                        <AccountDataComponent 
+                        <PlayerProfile
                             data={data.account} 
                             loading={loading.account}
                             error={errors.account}
@@ -230,14 +230,14 @@ const Profile: React.FC = () => {
                     {/* Left Column */}
                     <div className="lg:col-span-1 space-y-6">
                         {/* Ranked Section */}
-                        <LeagueEntriesDataComponent
+                        <RankedStats
                             data={data.leagueEntries}
                             loading={loading.leagueEntries}
                             error={errors.leagueEntries}
                         />
                         
                         {/* Champion Stats Section */}
-                        <ChampionStatsComponent
+                        <ChampionStats
                             data={data.championStats}
                             loading={loading.championStats}
                             error={errors.championStats}
@@ -246,7 +246,7 @@ const Profile: React.FC = () => {
 
                     {/* Matches Section */}
                     <div className="lg:col-span-2">
-                        <MatchesDataComponent
+                        <MatchHistory
                             data={data.matches}
                             loading={loading.matches}
                             error={errors.matches}

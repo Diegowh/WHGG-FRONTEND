@@ -7,7 +7,7 @@ interface AccountDataComponentProps {
     error?: string | null;
 }
 
-export const AccountDataComponent: React.FC<AccountDataComponentProps> = ({ data, loading, error }) => {
+export const PlayerProfile: React.FC<AccountDataComponentProps> = ({ data, loading, error }) => {
 
     if (error) {
         return (

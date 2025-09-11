@@ -1,7 +1,7 @@
 import React from "react";
 import type {LeagueEntryData} from "../types";
 
-export const  LeagueEntriesDataComponent: React.FC<{
+export const  RankedStats: React.FC<{
     data: LeagueEntryData[] | null;
     loading: boolean;
     error: string | null;
@@ -66,8 +66,8 @@ export const  LeagueEntriesDataComponent: React.FC<{
         <div className="bg-gray-800 rounded-lg p-6">
             <h2 className="text-xl font-bold text-white mb-4">Ranked Stats</h2>
             <div className="space-y-3">
-                {renderQueueCard(soloQueueData, "Ranked Solo Queue")}
-                {renderQueueCard(flexQueueData, "Ranked Flex Queue")}
+                {renderQueueCard(soloQueueData, "Ranked Solo")}
+                {renderQueueCard(flexQueueData, "Ranked Flex")}
             </div>
         </div>
     );
