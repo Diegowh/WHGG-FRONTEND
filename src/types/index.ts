@@ -32,6 +32,7 @@ export interface MatchData {
 
     participantWon?: boolean;
     championId?: number;
+    championName?: string;
     championLevel?: number;
 
     summonerSpellIds?: number[];

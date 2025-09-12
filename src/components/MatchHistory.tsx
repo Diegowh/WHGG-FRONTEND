@@ -50,7 +50,7 @@ export const MatchHistory: React.FC<{
                             {/* Match content */}
                             <div className="p-3 flex-1">
                                 <p className="text-white font-medium">
-                                    Champion ID: {match.championId}
+                                    {match.championName}
                                 </p>
                                 <p className="text-sm text-gray-300">
                                     KDA: {match.kills}/{match.deaths}/{match.assists}
